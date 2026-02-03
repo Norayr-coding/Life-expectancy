@@ -1,30 +1,21 @@
 import pandas as pd
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
+from sklearn.model_selection import train_test_split
 
-def clean_data(filepath):
-    df = pd.read_csv(filepath)
+def load_data(path):
+    df = pd.read_csv(path)
     df.columns = df.columns.str.strip().str.replace(' ', '_')
-    df_cleaned = df.dropna(subset=['Life_expectancy']).copy()
-    return df_cleaned
+    return df.dropna(subset=['Life_expectancy']).copy()
 
-def get_preprocessor(num_cols, cat_cols):
-    numeric_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='mean')), 
-        ('scaler', StandardScaler())
-    ])
+def split_data(df_cleaned):
+    numerical_features = [
+        'Year', 'Adult_Mortality', 'infant_deaths', 'Alcohol', 'percentage_expenditure', 'Hepatitis_B',
+        'Measles', 'BMI', 'Polio', 'Total_expenditure', 'Diphtheria', 'GDP', 'Population',
+        'thinness__1-19_years', 'thinness_5-9_years', 'Income_composition_of_resources', 'Schooling'
+    ]
+    categorical_features = ['Country', 'Status']
+    all_features = df_cleaned.columns.drop(['Life_expectancy', 'under-five_deaths']).tolist()
+    X = df_cleaned[all_features]
+    y = df_cleaned['Life_expectancy']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    return X_train, X_test, y_train, y_test, numerical_features, categorical_features
 
-    categorical_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='most_frequent')),
-        ('onehot', OneHotEncoder(handle_unknown='ignore'))
-    ])
-
-    return ColumnTransformer(
-        transformers=[
-            ('num', numeric_transformer, num_cols),
-            ('cat', categorical_transformer, cat_cols)
-        ],
-        remainder='drop'
-    )

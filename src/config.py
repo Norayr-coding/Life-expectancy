@@ -1,9 +1,18 @@
-numerical_features = [
-    'Year', 'Adult_Mortality', 'infant_deaths', 'Alcohol', 'percentage_expenditure', 
-    'Hepatitis_B', 'Measles', 'BMI', 'Polio', 'Total_expenditure', 'Diphtheria', 
-    'GDP', 'Population', 'thinness__1-19_years', 'thinness_5-9_years', 
-    'Income_composition_of_resources', 'Schooling'
-]
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.impute import SimpleImputer
 
-categorial_features = ['Country', 'Status']
-tearget = 'Life_expectancy'
+def get_preprocessor(numerical_features, categorical_features):
+    numerical_transformer = Pipeline([
+        ('imputer', SimpleImputer(strategy='mean')),
+        ('scaler', StandardScaler())
+    ])
+    categorical_transformer = Pipeline([
+        ('imputer', SimpleImputer(strategy='most_frequent')),
+        ('onehot', OneHotEncoder(handle_unknown='ignore'))
+    ])
+    return ColumnTransformer([
+        ('num', numerical_transformer, numerical_features),
+        ('cat', categorical_transformer, categorical_features)
+    ])
